@@ -23,13 +23,15 @@ jobs:
 
       - name: Run pipeline
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          AFFILIATE_API_URL: ${{ secrets.AFFILIATE_API_URL }}
-          AFFILIATE_API_KEY: ${{ secrets.AFFILIATE_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}   # napr. openai/gpt-4o-mini
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
-          VOICE: cs-CZ-AntoninNeural
+          TTS_PROVIDER: edge                               # edge = cesky hlas zdarma
+          VOICE: cs-CZ-AntoninNeural                       # cesky hlas (zkus i cs-CZ-VlastaNeural)
+          MUSIC_VOLUME: "0.12"
           FEED: ${{ vars.FEED }}                           # bomby | nejpro | zakladni
           USE_SAMPLE_OFFER: ${{ vars.USE_SAMPLE_OFFER }}   # nastav na 1 pro test, 0 v ostrem provozu
           PUBLISH: ${{ vars.PUBLISH }}                     # 0 = jen render, 1 = publikovat

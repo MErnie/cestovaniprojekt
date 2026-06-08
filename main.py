@@ -4,7 +4,7 @@ import sys
 from datetime import datetime
 
 import config
-from pipeline import fetch_offer, generate_script, tts, render
+from pipeline import fetch_offer, generate_script, tts, render, stock
 
 
 def run():
@@ -13,11 +13,12 @@ def run():
     offer = fetch_offer.get_offer()
     print(f"      {offer['location']} | {offer['price']} | {offer['discount']}")
 
-    print(f"[2/5] Generuji scenar (Gemini)...")
+    print(f"[2/5] Generuji scenar...")
     script = generate_script.generate_script(offer)
-    print(f"      {len(script['scenes'])} scen | titulek: {script['video_title']}")
+    n = len(script["scenes"])
+    print(f"      {n} scen | titulek: {script['video_title']}")
 
-    print(f"[3/5] Generuji hlas (edge-tts)...")
+    print(f"[3/5] Generuji hlas ({config.TTS_PROVIDER})...")
     scene_assets = []
     for i, scene in enumerate(script["scenes"]):
         audio = str(config.OUTPUT_DIR / f"work/aud_{i}.mp3")
@@ -27,8 +28,14 @@ def run():
         scene_assets.append({"audio": audio, "subs": subs})
 
     print(f"[4/5] Renderuji video (FFmpeg)...")
+    # fotky: nejdriv z feedu, doplneni stock fotkami destinace (mesto/plaz/atrakce)
+    images = list(offer.get("image_urls", []))
+    images += stock.get_stock_images(offer.get("location", ""), n=max(n - len(images), 0) + 2)
+    if not images:
+        images = list(offer.get("image_urls", []))
+    print(f"      fotek k dispozici: {len(images)}")
     out = str(config.OUTPUT_DIR / f"video_{stamp}.mp4")
-    render.build_video(script, scene_assets, offer, out)
+    render.build_video(script, scene_assets, images, out)
     print(f"      Hotovo: {out}")
 
     # caption k videu (popisek + hashtagy + affiliate odkaz)

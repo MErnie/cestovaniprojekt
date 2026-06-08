@@ -1,6 +1,6 @@
 # Video-továrna (faceless TikTok)
 
-Plně automatický pipeline: **nabídka → scénář (Gemini) → hlas (edge-tts) → render (FFmpeg) → TikTok**.
+Plně automatický pipeline: **nabídka → scénář (OpenRouter) → hlas (edge-tts) → render (FFmpeg) → TikTok**.
 Běží zdarma na GitHub Actions. Žádný server, žádný měsíční poplatek.
 
 ```
@@ -10,15 +10,23 @@ fetch_offer → generate_script → tts → render → publish_tiktok
 ## Co funguje hned (otestováno)
 
 - Render vertikálního videa 1080×1920 s overlay textem a karaoke titulky (slovo po slově).
-- České hlasy přes edge-tts (zdarma, bez API klíče).
-- Scénář v JSON přes Gemini 2.0 Flash (free tier).
+- **Ken Burns pohyb** (pomalý zoom/pan) na každé fotce — žádné statické záběry.
+- **Víc fotek** — z Invia feedu + stock fotky destinace (město/pláž/atrakce) přes Pexels; každá scéna jiná.
+- **Hudba do pozadí** — automaticky z `assets/music/` (loop + mix pod hlas).
+- **Hlas:** edge-tts (český, zdarma, bez klíče).
+- Scénář v JSON přes OpenRouter + template fallback.
 - Spuštění denně cronem + ruční tlačítko.
+
+## Hudba
+
+Vlož jeden royalty-free track do `assets/music/` (viz `assets/music/README.md`).
+Bez něj se video vyrenderuje jen s hlasem.
 
 ## Lokální test (volitelné)
 
 ```bash
 pip install -r requirements.txt && cp .env.example .env
-# v .env nech USE_SAMPLE_OFFER=1 a PUBLISH=0, vypln GEMINI_API_KEY
+# v .env nech USE_SAMPLE_OFFER=1 a PUBLISH=0, vypln OPENROUTER_API_KEY
 python main.py
 # vysledek: output/video_*.mp4 + popisek output/video_*.txt
 ```
@@ -41,20 +49,26 @@ git push -u origin main
 
 **Secrets** (tajné):
 
-| Secret | Kde získat |
-|---|---|
-| `GEMINI_API_KEY` | https://aistudio.google.com/apikey (zdarma) |
-| `TIKTOK_CLIENT_KEY` | TikTok Developer Portal (viz krok 3) |
-| `TIKTOK_CLIENT_SECRET` | TikTok Developer Portal |
-| `TIKTOK_REFRESH_TOKEN` | z OAuth flow (viz krok 3) |
+| Secret | Kde získat | Povinné? |
+|---|---|---|
+| `OPENROUTER_API_KEY` | https://openrouter.ai/keys | ne (bez něj template scénář) |
+| `PEXELS_API_KEY` | https://www.pexels.com/api/ (zdarma) | ne (bez něj jen fotky z feedu) |
+| `TIKTOK_CLIENT_KEY` | TikTok Developer Portal (viz krok 3) | jen pro publikaci |
+| `TIKTOK_CLIENT_SECRET` | TikTok Developer Portal | jen pro publikaci |
+| `TIKTOK_REFRESH_TOKEN` | z OAuth flow (viz krok 3) | jen pro publikaci |
 
 **Variables** (záložka Variables, ne Secrets):
 
 | Variable | Hodnota |
 |---|---|
 | `FEED` | `bomby` (největší slevy) / `nejpro` / `zakladni` |
+| `OPENROUTER_MODEL` | `openai/gpt-4o-mini` (levný, dobrá čeština, JSON) |
 | `USE_SAMPLE_OFFER` | `1` pro test / `0` v ostrém provozu |
 | `PUBLISH` | `0` jen render / `1` publikovat na TikTok |
+
+Hlas: **edge-tts** (český, zdarma, napevno). ElevenLabs vynechán — nemá češtinu.
+
+Vše má fallback: chybí-li OpenRouter klíč, scénář se složí z dat (template); chybí-li Pexels, použijí se jen fotky z feedu. Pipeline se nikdy nezasekne na chybějícím klíči.
 
 Invia feedy jsou veřejné XML URL (bez klíče), napevno v `pipeline/fetch_offer.py`. Žádný `AFFILIATE_API_KEY` není potřeba.
 
