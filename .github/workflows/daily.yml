@@ -28,11 +28,14 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}   # napr. openai/gpt-4o-mini
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+          ELEVENLABS_MODEL: eleven_multilingual_v2
           TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
-          TTS_PROVIDER: edge                               # edge = cesky hlas zdarma
-          VOICE: cs-CZ-AntoninNeural                       # cesky hlas (zkus i cs-CZ-VlastaNeural)
+          TTS_PROVIDER: ${{ vars.TTS_PROVIDER }}           # elevenlabs | edge (prazdne = edge)
+          VOICE: cs-CZ-AntoninNeural                       # edge-tts fallback hlas
           MUSIC_VOLUME: "0.12"
           FEED: ${{ vars.FEED }}                           # bomby | nejpro | zakladni
           SELECT_MODE: ${{ vars.SELECT_MODE }}             # discount | random

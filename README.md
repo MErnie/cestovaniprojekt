@@ -55,6 +55,8 @@ git push -u origin main
 |---|---|---|
 | `OPENROUTER_API_KEY` | https://openrouter.ai/keys | ne (bez něj template scénář) |
 | `PEXELS_API_KEY` | https://www.pexels.com/api/ (zdarma) | ne (bez něj jen fotky z feedu) |
+| `ELEVENLABS_API_KEY` | https://elevenlabs.io → Profile → API key | jen pro ElevenLabs hlas |
+| `ELEVENLABS_VOICE_ID` | ElevenLabs → Voices → hlas → Copy Voice ID | jen pro ElevenLabs hlas |
 | `TIKTOK_CLIENT_KEY` | TikTok Developer Portal (viz krok 3) | jen pro publikaci |
 | `TIKTOK_CLIENT_SECRET` | TikTok Developer Portal | jen pro publikaci |
 | `TIKTOK_REFRESH_TOKEN` | z OAuth flow (viz krok 3) | jen pro publikaci |
@@ -65,6 +67,7 @@ git push -u origin main
 |---|---|
 | `FEED` | `bomby` (největší slevy) / `nejpro` / `zakladni` |
 | `OPENROUTER_MODEL` | `deepseek/deepseek-v4-flash:free` (zdarma, čeština, JSON) |
+| `TTS_PROVIDER` | `elevenlabs` (realistický hlas) / prázdné = `edge` (zdarma) |
 | `SELECT_MODE` | `random` (náhodně z TOP) / `discount` (vždy největší sleva) |
 | `DEST_FILTER` | prázdné = vše / např. `Chorvatsko` (jen daná destinace) |
 | `USE_VIDEO_BG` | `1` video pozadí / `0` jen foto |
@@ -79,7 +82,8 @@ zpracované nabídky se ukládají do `state/seen.json` a neopakují se, dokud s
 nevyčerpá (pak se reset). Stav se po každém běhu commitne zpět do repa (proto má
 workflow `permissions: contents: write`).
 
-Hlas: **edge-tts** (český, zdarma, napevno). ElevenLabs vynechán — nemá češtinu.
+Hlas: `TTS_PROVIDER=elevenlabs` (realistický, model `eleven_multilingual_v2` umí česky)
+nebo `edge` (zdarma). Při chybě ElevenLabs (kvóta/klíč) spadne automaticky na edge-tts.
 
 Vše má fallback: chybí-li OpenRouter klíč, scénář se složí z dat (template); chybí-li Pexels, použijí se jen fotky z feedu. Pipeline se nikdy nezasekne na chybějícím klíči.
 

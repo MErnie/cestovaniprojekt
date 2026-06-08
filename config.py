@@ -19,7 +19,7 @@ DEST_FILTER = os.environ.get("DEST_FILTER", "")            # napr. "Chorvatsko" 
 STATE_FILE = ROOT / "state" / "seen.json"                  # rotace: uz zpracovane nabidky
 
 # --- Hlas ---
-TTS_PROVIDER = os.environ.get("TTS_PROVIDER", "edge")  # edge | elevenlabs
+TTS_PROVIDER = os.environ.get("TTS_PROVIDER") or "edge"  # edge | elevenlabs
 VOICE = os.environ.get("VOICE", "cs-CZ-AntoninNeural")        # edge-tts hlas (fallback)
 ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 ELEVENLABS_VOICE_ID = os.environ.get("ELEVENLABS_VOICE_ID", "")
