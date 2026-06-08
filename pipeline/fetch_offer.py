@@ -195,12 +195,26 @@ def _select(offers: list) -> dict:
     return chosen
 
 
-def fetch_from_affiliate_api() -> dict:
-    feed_key = os.environ.get("FEED") or "bomby"
+def _all_offers(feed_key: str) -> list:
     root = ET.fromstring(_download(feed_key))
     items = _item_elements(root)
     offers = [_to_offer(i) for i in items]
-    offers = [o for o in offers if o["title"] and (o["_price_num"] < 1e12)]
+    return [o for o in offers if o["title"] and (o["_price_num"] < 1e12)]
+
+
+def list_offers(feed_key: str = None, limit: int = 60) -> list:
+    """Seznam vsech nabidek (serazeno podle slevy) pro vyber ve web UI."""
+    feed_key = feed_key or os.environ.get("FEED") or "bomby"
+    offers = _all_offers(feed_key)
+    offers.sort(key=lambda o: (-o["_discount_num"], o["_price_num"]))
+    for o in offers:
+        o["id"] = _offer_id(o)
+    return offers[:limit]
+
+
+def fetch_from_affiliate_api() -> dict:
+    feed_key = os.environ.get("FEED") or "bomby"
+    offers = _all_offers(feed_key)
     if not offers:
         raise ValueError("Z feedu se nepodarilo vytahnout zadnou nabidku. Spust --inspect.")
     best = _select(offers)

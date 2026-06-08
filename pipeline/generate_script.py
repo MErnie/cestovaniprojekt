@@ -69,7 +69,7 @@ def _parse_json(content: str) -> dict:
     return json.loads(content)
 
 
-def _try_openrouter(offer: dict) -> dict:
+def _try_openrouter(offer: dict, notes: str = "") -> dict:
     user_prompt = (
         f"Nabídka:\n"
         f"- Lokalita: {offer['location']}\n"
@@ -77,6 +77,8 @@ def _try_openrouter(offer: dict) -> dict:
         f"- Sleva: {offer['discount']}\n"
         f"- Popis: {offer['description']}\n"
     )
+    if notes:
+        user_prompt += f"\nMůj úhel pohledu / co zdůraznit (dodrž): {notes}\n"
     models = [config.OPENROUTER_MODEL] + [m for m in MODEL_FALLBACK if m != config.OPENROUTER_MODEL]
     last_err = None
     for model_name in models:
@@ -99,9 +101,8 @@ def _try_openrouter(offer: dict) -> dict:
                     },
                     timeout=60,
                 )
-                if r.status_code == 429:
-                    raise requests.HTTPError("429")
-                r.raise_for_status()
+                if r.status_code != 200:
+                    raise RuntimeError(f"{r.status_code}: {r.text[:300]}")
                 content = r.json()["choices"][0]["message"]["content"]
                 script = _parse_json(content)
                 script["url"] = offer.get("url", "")
@@ -118,12 +119,12 @@ def _try_openrouter(offer: dict) -> dict:
     raise last_err
 
 
-def generate_script(offer: dict) -> dict:
+def generate_script(offer: dict, notes: str = "") -> dict:
     if not config.OPENROUTER_API_KEY:
         print("      Chybi OPENROUTER_API_KEY -> template fallback.")
         return _template_script(offer)
     try:
-        return _try_openrouter(offer)
+        return _try_openrouter(offer, notes)
     except Exception as e:
         print(f"      LLM selhal ({e}). Pouzivam template fallback.")
         return _template_script(offer)

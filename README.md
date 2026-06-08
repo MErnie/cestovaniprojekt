@@ -19,6 +19,19 @@ fetch_offer → generate_script → tts → render → publish_tiktok
 - Scénář v JSON přes OpenRouter + template fallback.
 - Spuštění denně cronem + ruční tlačítko.
 
+## Web app (ruční tvorba)
+
+Kromě automatu je k dispozici **dashboard** (`webapp/app.py`): vybereš konkrétní
+dovolenou z feedu, připíšeš svůj úhel pohledu, zvolíš hlas/pozadí a vygeneruješ
+video s náhledem. Lokálně:
+
+```bash
+pip install -r requirements.txt
+uvicorn webapp.app:app --port 8000      # pak otevri http://localhost:8000
+```
+
+Nasazení na VPS (běží pořád, i z mobilu): viz `DEPLOY.md`.
+
 ## Hudba
 
 Vlož jeden royalty-free track do `assets/music/` (viz `assets/music/README.md`).
