@@ -1,0 +1,43 @@
+name: video-tovarna
+
+on:
+  schedule:
+    - cron: "0 7 * * *"   # kazdy den 07:00 UTC (09:00 CEST). Pridej dalsi radek pro 2. video.
+  workflow_dispatch:        # rucni spusteni tlacitkem v zalozce Actions
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system deps
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-dejavu-core
+
+      - name: Install Python deps
+        run: pip install -r requirements.txt
+
+      - name: Run pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          AFFILIATE_API_URL: ${{ secrets.AFFILIATE_API_URL }}
+          AFFILIATE_API_KEY: ${{ secrets.AFFILIATE_API_KEY }}
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+          VOICE: cs-CZ-AntoninNeural
+          FEED: ${{ vars.FEED }}                           # bomby | nejpro | zakladni
+          USE_SAMPLE_OFFER: ${{ vars.USE_SAMPLE_OFFER }}   # nastav na 1 pro test, 0 v ostrem provozu
+          PUBLISH: ${{ vars.PUBLISH }}                     # 0 = jen render, 1 = publikovat
+        run: python main.py
+
+      - name: Upload video artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: video
+          path: output/*.mp4
+          retention-days: 7
