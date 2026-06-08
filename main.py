@@ -28,14 +28,15 @@ def run():
         scene_assets.append({"audio": audio, "subs": subs})
 
     print(f"[4/5] Renderuji video (FFmpeg)...")
-    # fotky: nejdriv z feedu, doplneni stock fotkami destinace (mesto/plaz/atrakce)
+    loc = offer.get("location", "")
+    # fotky: z feedu + stock fotky destinace (fallback kdyz neni video)
     images = list(offer.get("image_urls", []))
-    images += stock.get_stock_images(offer.get("location", ""), n=max(n - len(images), 0) + 2)
-    if not images:
-        images = list(offer.get("image_urls", []))
-    print(f"      fotek k dispozici: {len(images)}")
+    images += stock.get_stock_images(loc, n=max(n - len(images), 0) + 2)
+    # video pozadi (preferovane) - stock b-roll destinace
+    videos = stock.get_stock_videos(loc, n=n) if config.USE_VIDEO_BG else []
+    print(f"      pozadi: {len(videos)} videi, {len(images)} fotek")
     out = str(config.OUTPUT_DIR / f"video_{stamp}.mp4")
-    render.build_video(script, scene_assets, images, out)
+    render.build_video(script, scene_assets, images, videos, out)
     print(f"      Hotovo: {out}")
 
     # caption k videu (popisek + hashtagy + affiliate odkaz)

@@ -7,7 +7,10 @@ Diagnostika struktury feedu:
     python -m pipeline.fetch_offer --inspect
 (vypise root, polozkovy tag a dostupna pole prvni polozky)
 """
+import hashlib
+import json
 import os
+import random
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -143,16 +146,60 @@ def _to_offer(item) -> dict:
     }
 
 
+def _offer_id(o: dict) -> str:
+    base = o.get("url") or f"{o.get('title')}|{o.get('price')}"
+    return hashlib.md5(base.encode("utf-8")).hexdigest()[:16]
+
+
+def _load_seen() -> list:
+    try:
+        return json.loads(config.STATE_FILE.read_text())
+    except Exception:
+        return []
+
+
+def _save_seen(seen: list):
+    config.STATE_FILE.parent.mkdir(exist_ok=True)
+    # drz jen poslednich 500 zaznamu, at soubor neroste donekonecna
+    config.STATE_FILE.write_text(json.dumps(seen[-500:], ensure_ascii=False))
+
+
+def _select(offers: list) -> dict:
+    """Vyber podle DEST_FILTER + rotace (bez opakovani) + SELECT_MODE."""
+    # filtr destinace
+    if config.DEST_FILTER:
+        f = config.DEST_FILTER.lower()
+        filtered = [o for o in offers if f in (o.get("location", "") + o.get("title", "")).lower()]
+        offers = filtered or offers  # kdyz filtr nic nenajde, neztrat vse
+
+    # serad podle slevy (pak nejnizsi cena)
+    offers.sort(key=lambda o: (-o["_discount_num"], o["_price_num"]))
+
+    # rotace: vyhod uz zpracovane; kdyz dojdou, resetuj
+    seen = _load_seen()
+    fresh = [o for o in offers if _offer_id(o) not in seen]
+    if not fresh:
+        seen, fresh = [], offers
+
+    if config.SELECT_MODE == "random":
+        chosen = random.choice(fresh[:max(config.SELECT_TOP_N, 1)])
+    else:  # discount
+        chosen = fresh[0]
+
+    seen.append(_offer_id(chosen))
+    _save_seen(seen)
+    return chosen
+
+
 def fetch_from_affiliate_api() -> dict:
-    feed_key = os.environ.get("FEED", "bomby")
+    feed_key = os.environ.get("FEED") or "bomby"
     root = ET.fromstring(_download(feed_key))
     items = _item_elements(root)
     offers = [_to_offer(i) for i in items]
     offers = [o for o in offers if o["title"] and (o["_price_num"] < 1e12)]
     if not offers:
         raise ValueError("Z feedu se nepodarilo vytahnout zadnou nabidku. Spust --inspect.")
-    # nejlepsi: max sleva, pak nejnizsi cena
-    best = sorted(offers, key=lambda o: (-o["_discount_num"], o["_price_num"]))[0]
+    best = _select(offers)
     best.pop("_discount_num", None)
     best.pop("_price_num", None)
     return best

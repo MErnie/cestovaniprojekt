@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write          # aby workflow mohl commitnout stav rotace zpet do repa
     steps:
       - uses: actions/checkout@v4
 
@@ -33,6 +35,9 @@ jobs:
           VOICE: cs-CZ-AntoninNeural                       # cesky hlas (zkus i cs-CZ-VlastaNeural)
           MUSIC_VOLUME: "0.12"
           FEED: ${{ vars.FEED }}                           # bomby | nejpro | zakladni
+          SELECT_MODE: ${{ vars.SELECT_MODE }}             # discount | random
+          DEST_FILTER: ${{ vars.DEST_FILTER }}             # napr. Chorvatsko (prazdne = vse)
+          USE_VIDEO_BG: ${{ vars.USE_VIDEO_BG }}           # 1 = video pozadi, 0 = jen foto
           USE_SAMPLE_OFFER: ${{ vars.USE_SAMPLE_OFFER }}   # nastav na 1 pro test, 0 v ostrem provozu
           PUBLISH: ${{ vars.PUBLISH }}                     # 0 = jen render, 1 = publikovat
         run: python main.py
@@ -43,3 +48,12 @@ jobs:
           name: video
           path: output/*.mp4
           retention-days: 7
+
+      - name: Persist rotace stav
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state/seen.json 2>/dev/null || true
+          git commit -m "rotace: update seen [skip ci]" || echo "nic ke commitu"
+          git push || echo "push se nepodaril"

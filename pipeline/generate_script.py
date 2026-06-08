@@ -29,11 +29,11 @@ Vrať POUZE validní JSON v PŘESNĚ tomto tvaru, nic jiného:
   ]
 }"""
 
-# fallback modely (pokud hlavni selze). Uprav podle sve OpenRouter penezenky.
+# fallback modely (vsechny zdarma). Pokud primarni selze, zkusi je poporade.
 MODEL_FALLBACK = [
-    "openai/gpt-4o-mini",
-    "google/gemini-2.0-flash-001",
-    "meta-llama/llama-3.3-70b-instruct",
+    "deepseek/deepseek-v4-flash:free",
+    "moonshotai/kimi-k2.6:free",
+    "google/gemma-4-31b-it:free",
 ]
 
 

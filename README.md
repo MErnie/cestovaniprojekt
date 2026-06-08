@@ -10,8 +10,10 @@ fetch_offer → generate_script → tts → render → publish_tiktok
 ## Co funguje hned (otestováno)
 
 - Render vertikálního videa 1080×1920 s overlay textem a karaoke titulky (slovo po slově).
-- **Ken Burns pohyb** (pomalý zoom/pan) na každé fotce — žádné statické záběry.
+- **Video pozadí** — stock b-roll destinace (Pexels Video API), s fallbackem na fotky.
+- **Ken Burns pohyb** (pomalý zoom/pan) na fotkách, když není video.
 - **Víc fotek** — z Invia feedu + stock fotky destinace (město/pláž/atrakce) přes Pexels; každá scéna jiná.
+- **Chunky karaoke titulky** — 3-slovní bloky, zvýraznění slova jak ho hlas vyslovuje.
 - **Hudba do pozadí** — automaticky z `assets/music/` (loop + mix pod hlas).
 - **Hlas:** edge-tts (český, zdarma, bez klíče).
 - Scénář v JSON přes OpenRouter + template fallback.
@@ -62,9 +64,20 @@ git push -u origin main
 | Variable | Hodnota |
 |---|---|
 | `FEED` | `bomby` (největší slevy) / `nejpro` / `zakladni` |
-| `OPENROUTER_MODEL` | `openai/gpt-4o-mini` (levný, dobrá čeština, JSON) |
+| `OPENROUTER_MODEL` | `deepseek/deepseek-v4-flash:free` (zdarma, čeština, JSON) |
+| `SELECT_MODE` | `random` (náhodně z TOP) / `discount` (vždy největší sleva) |
+| `DEST_FILTER` | prázdné = vše / např. `Chorvatsko` (jen daná destinace) |
+| `USE_VIDEO_BG` | `1` video pozadí / `0` jen foto |
 | `USE_SAMPLE_OFFER` | `1` pro test / `0` v ostrém provozu |
 | `PUBLISH` | `0` jen render / `1` publikovat na TikTok |
+
+### Výběr nabídky a rotace
+
+Z feedu se vybírá podle `SELECT_MODE` (náhodně z TOP N nejvýhodnějších, nebo vždy
+největší sleva), volitelně omezeno na `DEST_FILTER`. **Rotace je vždy zapnutá** —
+zpracované nabídky se ukládají do `state/seen.json` a neopakují se, dokud se pool
+nevyčerpá (pak se reset). Stav se po každém běhu commitne zpět do repa (proto má
+workflow `permissions: contents: write`).
 
 Hlas: **edge-tts** (český, zdarma, napevno). ElevenLabs vynechán — nemá češtinu.
 

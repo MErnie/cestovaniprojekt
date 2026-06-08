@@ -7,10 +7,16 @@ ASSETS_DIR = ROOT / "assets"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
-OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "openai/gpt-4o-mini")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL") or "deepseek/deepseek-v4-flash:free"
 
 AFFILIATE_API_URL = os.environ.get("AFFILIATE_API_URL", "")
 AFFILIATE_API_KEY = os.environ.get("AFFILIATE_API_KEY", "")
+
+# --- Vyber nabidky ---
+SELECT_MODE = os.environ.get("SELECT_MODE") or "random"   # discount | random
+SELECT_TOP_N = int(os.environ.get("SELECT_TOP_N") or "8")  # z kolika top nabidek losovat
+DEST_FILTER = os.environ.get("DEST_FILTER", "")            # napr. "Chorvatsko" (prazdne = bez filtru)
+STATE_FILE = ROOT / "state" / "seen.json"                  # rotace: uz zpracovane nabidky
 
 # --- Hlas ---
 TTS_PROVIDER = os.environ.get("TTS_PROVIDER", "edge")  # edge | elevenlabs
@@ -19,8 +25,9 @@ ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 ELEVENLABS_VOICE_ID = os.environ.get("ELEVENLABS_VOICE_ID", "")
 ELEVENLABS_MODEL = os.environ.get("ELEVENLABS_MODEL", "eleven_multilingual_v2")
 
-# --- Stock fotky ---
+# --- Stock fotky / video ---
 PEXELS_API_KEY = os.environ.get("PEXELS_API_KEY", "")
+USE_VIDEO_BG = (os.environ.get("USE_VIDEO_BG") or "1") == "1"  # 1 = video pozadi, 0 = jen foto
 
 # --- Hudba ---
 MUSIC_VOLUME = float(os.environ.get("MUSIC_VOLUME", "0.12"))
