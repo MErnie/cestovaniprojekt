@@ -25,12 +25,14 @@ def produce_video(offer: dict, notes: str = "", progress=lambda s: None) -> dict
 
     progress("Stahuji pozadi a renderuji...")
     loc = offer.get("location", "")
-    images = list(offer.get("image_urls", []))
-    images += stock.get_stock_images(loc, n=max(n - len(images), 0) + 2)
+    feed_imgs = list(offer.get("image_urls", []))
+    hotel_image = feed_imgs[0] if feed_imgs else ""   # fotka hotelu z feedu
+    images = feed_imgs + stock.get_stock_images(loc, n=max(n - len(feed_imgs), 0) + 2)
     videos = stock.get_stock_videos(loc, n=n) if config.USE_VIDEO_BG else []
 
     out = str(config.OUTPUT_DIR / f"video_{stamp}.mp4")
-    render.build_video(script, scene_assets, images, videos, out)
+    render.build_video(script, scene_assets, images, videos, out,
+                       hotel_image=hotel_image, stars=offer.get("stars", ""))
 
     caption_path = str(config.OUTPUT_DIR / f"video_{stamp}.txt")
     with open(caption_path, "w", encoding="utf-8") as f:

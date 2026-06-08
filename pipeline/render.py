@@ -6,9 +6,11 @@ Sceny se spoji a pod cele video se primixuje hudba z assets/music/ (kdyz tam je)
 """
 import glob
 import os
+import re
 import subprocess
 import requests
 import config
+from pipeline import textutil
 
 _FONT_CANDIDATES = [
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
@@ -46,15 +48,38 @@ def _download(url: str, dest: str) -> bool:
         return False
 
 
-def _font_overlay_ass(overlay_file: str, subs: str) -> str:
+def _overlay_filter(overlay_file: str, fontsize: int, subs: str, stars_file: str = None) -> str:
     font = _font()
     fontopt = f"fontfile='{font}':" if font else ""
-    return (
+    parts = [
         f"drawtext={fontopt}textfile='{overlay_file}':expansion=none:"
-        f"fontcolor=yellow:fontsize=92:borderw=6:bordercolor=black:"
-        f"x=(w-text_w)/2:y=h*0.26:line_spacing=12,"
-        f"ass='{subs}'"
-    )
+        f"fontcolor=yellow:fontsize={fontsize}:borderw=7:bordercolor=black:"
+        f"x=(w-text_w)/2:y=h*0.22:line_spacing=14"
+    ]
+    if stars_file:
+        parts.append(
+            f"drawtext={fontopt}textfile='{stars_file}':expansion=none:"
+            f"fontcolor=0xFFD700:fontsize=88:borderw=6:bordercolor=black:"
+            f"x=(w-text_w)/2:y=h*0.40")
+    parts.append(f"ass='{subs}'")
+    return ",".join(parts)
+
+
+def _stars_count(stars) -> int:
+    m = re.search(r"\d+", str(stars))
+    return min(int(m.group()), 5) if m else 0
+
+
+def price_scene_index(scenes: list) -> int:
+    """Scena, kde se mluvi o cene/hotelu -> tam dame fotku hotelu + hvezdicky."""
+    for i, s in enumerate(scenes):
+        ov = s.get("visual_overlay", "").lower()
+        if "kč" in ov or "kc" in ov or "cena" in ov:
+            return i
+    for i, s in enumerate(scenes):
+        if any(c.isdigit() for c in s.get("visual_overlay", "")):
+            return i
+    return min(2, len(scenes) - 1)
 
 
 def _prep_photo_bg(idx: int, image_url: str, work: str) -> str:
@@ -89,13 +114,20 @@ def _ken_burns(idx: int, frames: int) -> str:
             f"y='ih/2-(ih/zoom/2)':{s}")
 
 
-def _render_scene(idx, audio, subs, overlay_text, bg, work) -> str:
+def _render_scene(idx, audio, subs, overlay_text, bg, work, stars="") -> str:
     dur = _duration(audio)
     frames = max(int(dur * _FPS) + 2, 2)
+    prepared, fontsize = textutil.prepare_overlay(overlay_text)
     overlay_file = os.path.join(work, f"overlay_{idx}.txt")
     with open(overlay_file, "w", encoding="utf-8") as f:
-        f.write(overlay_text)
-    tail = _font_overlay_ass(overlay_file, subs)
+        f.write(prepared)
+    stars_file = None
+    n = _stars_count(stars)
+    if n:
+        stars_file = os.path.join(work, f"stars_{idx}.txt")
+        with open(stars_file, "w", encoding="utf-8") as f:
+            f.write("★" * n)
+    tail = _overlay_filter(overlay_file, fontsize, subs, stars_file)
     out = os.path.join(work, f"scene_{idx}.mp4")
 
     video_path = None
@@ -152,15 +184,23 @@ def _bg_for_scene(i, videos, images):
     return {"type": "color", "src": ""}
 
 
-def build_video(script: dict, scene_assets: list, images: list, videos: list, out_path: str) -> str:
+def build_video(script: dict, scene_assets: list, images: list, videos: list,
+                out_path: str, hotel_image: str = "", stars: str = "") -> str:
     work = str(config.OUTPUT_DIR / "work")
     os.makedirs(work, exist_ok=True)
 
+    p_idx = price_scene_index(script["scenes"]) if hotel_image else -1
+
     clips = []
     for i, (scene, assets) in enumerate(zip(script["scenes"], scene_assets)):
-        bg = _bg_for_scene(i, videos, images)
+        if i == p_idx:                       # hotelova scena: fotka hotelu + hvezdicky
+            bg = {"type": "image", "src": hotel_image}
+            sc_stars = stars
+        else:
+            bg = _bg_for_scene(i, videos, images)
+            sc_stars = ""
         clips.append(_render_scene(i, assets["audio"], assets["subs"],
-                                   scene["visual_overlay"], bg, work))
+                                   scene["visual_overlay"], bg, work, sc_stars))
 
     concat_list = os.path.join(work, "concat.txt")
     with open(concat_list, "w") as f:

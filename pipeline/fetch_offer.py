@@ -141,6 +141,7 @@ def _to_offer(item) -> dict:
         "description": ". ".join(desc_parts),
         "url": url,
         "image_urls": images,
+        "stars": stars,
         "_discount_num": disc or 0,
         "_price_num": price or 1e12,
     }
@@ -231,6 +232,7 @@ SAMPLE_OFFER = {
     "description": "Luxusni 5* hotel v Pule se slevou 45 %. Bezne 16 000 Kc, ted 8 900 Kc.",
     "url": "https://example.com/?aff=TVOJE_ID",
     "image_urls": [],
+    "stars": "5",
 }
 
 
