@@ -7,7 +7,7 @@ ASSETS_DIR = ROOT / "assets"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
-OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL") or "deepseek/deepseek-v4-flash:free"
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL") or "google/gemma-4-31b-it:free"
 
 AFFILIATE_API_URL = os.environ.get("AFFILIATE_API_URL", "")
 AFFILIATE_API_KEY = os.environ.get("AFFILIATE_API_KEY", "")

@@ -29,11 +29,10 @@ Vrať POUZE validní JSON v PŘESNĚ tomto tvaru, nic jiného:
   ]
 }"""
 
-# fallback modely (vsechny zdarma). Pokud primarni selze, zkusi je poporade.
+# fallback modely (free, pres google-ai-studio providera). Pokud primarni selze.
 MODEL_FALLBACK = [
-    "deepseek/deepseek-v4-flash:free",
-    "moonshotai/kimi-k2.6:free",
     "google/gemma-4-31b-it:free",
+    "google/gemma-4-26b-a4b-it:free",
 ]
 
 

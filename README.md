@@ -79,7 +79,7 @@ git push -u origin main
 | Variable | Hodnota |
 |---|---|
 | `FEED` | `bomby` (největší slevy) / `nejpro` / `zakladni` |
-| `OPENROUTER_MODEL` | `deepseek/deepseek-v4-flash:free` (zdarma, čeština, JSON) |
+| `OPENROUTER_MODEL` | `google/gemma-4-31b-it:free` (zdarma, přes google-ai-studio) |
 | `TTS_PROVIDER` | `elevenlabs` (realistický hlas) / prázdné = `edge` (zdarma) |
 | `SELECT_MODE` | `random` (náhodně z TOP) / `discount` (vždy největší sleva) |
 | `ROTATE` | `1` neopakovat nabídky / `0` vždy nejlepší (i opakovaně) |
