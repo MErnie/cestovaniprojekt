@@ -39,6 +39,7 @@ jobs:
           MUSIC_VOLUME: "0.12"
           FEED: ${{ vars.FEED }}                           # bomby | nejpro | zakladni
           SELECT_MODE: ${{ vars.SELECT_MODE }}             # discount | random
+          ROTATE: ${{ vars.ROTATE }}                       # 1 = neopakovat, 0 = vzdy nejlepsi nabidka
           DEST_FILTER: ${{ vars.DEST_FILTER }}             # napr. Chorvatsko (prazdne = vse)
           USE_VIDEO_BG: ${{ vars.USE_VIDEO_BG }}           # 1 = video pozadi, 0 = jen foto
           USE_SAMPLE_OFFER: ${{ vars.USE_SAMPLE_OFFER }}   # nastav na 1 pro test, 0 v ostrem provozu

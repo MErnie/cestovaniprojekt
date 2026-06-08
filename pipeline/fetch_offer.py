@@ -175,19 +175,23 @@ def _select(offers: list) -> dict:
     # serad podle slevy (pak nejnizsi cena)
     offers.sort(key=lambda o: (-o["_discount_num"], o["_price_num"]))
 
-    # rotace: vyhod uz zpracovane; kdyz dojdou, resetuj
-    seen = _load_seen()
-    fresh = [o for o in offers if _offer_id(o) not in seen]
-    if not fresh:
-        seen, fresh = [], offers
+    # rotace (volitelna): vyhod uz zpracovane; kdyz dojdou, resetuj
+    if config.ROTATE:
+        seen = _load_seen()
+        fresh = [o for o in offers if _offer_id(o) not in seen]
+        if not fresh:
+            seen, fresh = [], offers
+    else:
+        seen, fresh = None, offers
 
     if config.SELECT_MODE == "random":
         chosen = random.choice(fresh[:max(config.SELECT_TOP_N, 1)])
-    else:  # discount
+    else:  # discount = vzdy nejvetsi sleva / nejlepsi cena
         chosen = fresh[0]
 
-    seen.append(_offer_id(chosen))
-    _save_seen(seen)
+    if config.ROTATE:
+        seen.append(_offer_id(chosen))
+        _save_seen(seen)
     return chosen
 
 

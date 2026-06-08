@@ -69,6 +69,7 @@ git push -u origin main
 | `OPENROUTER_MODEL` | `deepseek/deepseek-v4-flash:free` (zdarma, čeština, JSON) |
 | `TTS_PROVIDER` | `elevenlabs` (realistický hlas) / prázdné = `edge` (zdarma) |
 | `SELECT_MODE` | `random` (náhodně z TOP) / `discount` (vždy největší sleva) |
+| `ROTATE` | `1` neopakovat nabídky / `0` vždy nejlepší (i opakovaně) |
 | `DEST_FILTER` | prázdné = vše / např. `Chorvatsko` (jen daná destinace) |
 | `USE_VIDEO_BG` | `1` video pozadí / `0` jen foto |
 | `USE_SAMPLE_OFFER` | `1` pro test / `0` v ostrém provozu |

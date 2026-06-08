@@ -15,6 +15,7 @@ AFFILIATE_API_KEY = os.environ.get("AFFILIATE_API_KEY", "")
 # --- Vyber nabidky ---
 SELECT_MODE = os.environ.get("SELECT_MODE") or "random"   # discount | random
 SELECT_TOP_N = int(os.environ.get("SELECT_TOP_N") or "8")  # z kolika top nabidek losovat
+ROTATE = (os.environ.get("ROTATE") or "1") == "1"          # 1 = neopakovat nabidky, 0 = vzdy nejlepsi (i opakovane)
 DEST_FILTER = os.environ.get("DEST_FILTER", "")            # napr. "Chorvatsko" (prazdne = bez filtru)
 STATE_FILE = ROOT / "state" / "seen.json"                  # rotace: uz zpracovane nabidky
 
