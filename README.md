@@ -66,7 +66,8 @@ git push -u origin main
 
 | Secret | Kde získat | Povinné? |
 |---|---|---|
-| `OPENROUTER_API_KEY` | https://openrouter.ai/keys | ne (bez něj template scénář) |
+| `GEMINI_API_KEY` | https://aistudio.google.com/apikey (free tier, `AIza…`) | ne (preferovaný LLM) |
+| `OPENROUTER_API_KEY` | https://openrouter.ai/keys | ne (záloha za Gemini) |
 | `PEXELS_API_KEY` | https://www.pexels.com/api/ (zdarma) | ne (bez něj jen fotky z feedu) |
 | `ELEVENLABS_API_KEY` | https://elevenlabs.io → Profile → API key | jen pro ElevenLabs hlas |
 | `ELEVENLABS_VOICE_ID` | ElevenLabs → Voices → hlas → Copy Voice ID | jen pro ElevenLabs hlas |
@@ -79,7 +80,7 @@ git push -u origin main
 | Variable | Hodnota |
 |---|---|
 | `FEED` | `bomby` (největší slevy) / `nejpro` / `zakladni` |
-| `OPENROUTER_MODEL` | `google/gemma-4-31b-it:free` (zdarma, přes google-ai-studio) |
+| `OPENROUTER_MODEL` | `google/gemma-4-31b-it` (přes tvůj Google klíč v OpenRouter Integrations) |
 | `TTS_PROVIDER` | `elevenlabs` (realistický hlas) / prázdné = `edge` (zdarma) |
 | `SELECT_MODE` | `random` (náhodně z TOP) / `discount` (vždy největší sleva) |
 | `ROTATE` | `1` neopakovat nabídky / `0` vždy nejlepší (i opakovaně) |

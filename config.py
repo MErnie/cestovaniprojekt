@@ -6,8 +6,11 @@ OUTPUT_DIR = ROOT / "output"
 ASSETS_DIR = ROOT / "assets"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
+# Scenar: pokud je GEMINI_API_KEY -> primy Gemini (free tier), jinak OpenRouter, jinak template
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL") or "gemini-2.0-flash"
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
-OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL") or "google/gemma-4-31b-it:free"
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL") or "google/gemma-4-31b-it"
 
 AFFILIATE_API_URL = os.environ.get("AFFILIATE_API_URL", "")
 AFFILIATE_API_KEY = os.environ.get("AFFILIATE_API_KEY", "")

@@ -33,8 +33,9 @@ Vrať POUZE validní JSON v PŘESNĚ tomto tvaru, nic jiného:
 
 # fallback modely (free, pres google-ai-studio providera). Pokud primarni selze.
 MODEL_FALLBACK = [
-    "google/gemma-4-31b-it:free",
-    "google/gemma-4-26b-a4b-it:free",
+    "google/gemma-4-31b-it",
+    "google/gemma-4-26b-a4b-it",
+    "google/gemini-2.0-flash-001",
 ]
 
 
@@ -70,8 +71,11 @@ def _parse_json(content: str) -> dict:
     return json.loads(content)
 
 
-def _try_openrouter(offer: dict, notes: str = "") -> dict:
-    user_prompt = (
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+
+
+def _build_user_prompt(offer: dict, notes: str = "") -> str:
+    p = (
         f"Nabídka:\n"
         f"- Lokalita: {offer['location']}\n"
         f"- Cena: {offer['price']}\n"
@@ -79,7 +83,34 @@ def _try_openrouter(offer: dict, notes: str = "") -> dict:
         f"- Popis: {offer['description']}\n"
     )
     if notes:
-        user_prompt += f"\nMůj úhel pohledu / co zdůraznit (dodrž): {notes}\n"
+        p += f"\nMůj úhel pohledu / co zdůraznit (dodrž): {notes}\n"
+    return p
+
+
+def _try_gemini(offer: dict, notes: str = "") -> dict:
+    """Prime Gemini API (free tier, AIza klic). Cisty REST, zadna knihovna."""
+    r = requests.post(
+        GEMINI_URL.format(model=config.GEMINI_MODEL),
+        params={"key": config.GEMINI_API_KEY},
+        headers={"Content-Type": "application/json"},
+        json={
+            "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+            "contents": [{"parts": [{"text": _build_user_prompt(offer, notes)}]}],
+            "generationConfig": {"response_mime_type": "application/json", "temperature": 0.9},
+        },
+        timeout=60,
+    )
+    if r.status_code != 200:
+        raise RuntimeError(f"Gemini {r.status_code}: {r.text[:300]}")
+    content = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+    script = _parse_json(content)
+    script["url"] = offer.get("url", "")
+    print(f"      LLM: Gemini {config.GEMINI_MODEL}")
+    return script
+
+
+def _try_openrouter(offer: dict, notes: str = "") -> dict:
+    user_prompt = _build_user_prompt(offer, notes)
     models = [config.OPENROUTER_MODEL] + [m for m in MODEL_FALLBACK if m != config.OPENROUTER_MODEL]
     last_err = None
     for model_name in models:
@@ -121,11 +152,18 @@ def _try_openrouter(offer: dict, notes: str = "") -> dict:
 
 
 def generate_script(offer: dict, notes: str = "") -> dict:
-    if not config.OPENROUTER_API_KEY:
-        print("      Chybi OPENROUTER_API_KEY -> template fallback.")
-        return _template_script(offer)
-    try:
-        return _try_openrouter(offer, notes)
-    except Exception as e:
-        print(f"      LLM selhal ({e}). Pouzivam template fallback.")
-        return _template_script(offer)
+    # 1) primy Gemini (free tier) - preferovany kdyz je klic
+    if config.GEMINI_API_KEY:
+        try:
+            return _try_gemini(offer, notes)
+        except Exception as e:
+            print(f"      Gemini selhal ({e}).")
+    # 2) OpenRouter
+    if config.OPENROUTER_API_KEY:
+        try:
+            return _try_openrouter(offer, notes)
+        except Exception as e:
+            print(f"      OpenRouter selhal ({e}).")
+    # 3) template (zdarma, bez LLM)
+    print("      Pouzivam template fallback.")
+    return _template_script(offer)
